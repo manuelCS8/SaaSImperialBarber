@@ -1,0 +1,31 @@
+# Dependencias de Node (¡Crucial para que no se suban millones de archivos!)
+node_modules/
+jspm_packages/
+web_modules/
+
+# Archivos de compilación (Vite y TypeScript)
+dist/
+build/
+.cache/
+
+# Variables de entorno y credenciales (¡Seguridad para que no se filtren contraseñas!)
+.env
+.env.local
+.env.*.local
+*.env
+
+# Archivos de configuración de editores y sistemas operativos
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Archivos de depuración y logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Archivos locales de Prisma
+/server/prisma/dev.db
+/server/prisma/dev.db-journal
