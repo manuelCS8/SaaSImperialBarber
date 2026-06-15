@@ -8,12 +8,36 @@ import { errorHandler } from './middleware/error.middleware';
 
 dotenv.config();
 
+function getAllowedOrigins(): string[] {
+  const origins = new Set<string>(['http://localhost:5173']);
+
+  if (process.env.CLIENT_URL) {
+    origins.add(process.env.CLIENT_URL);
+  }
+
+  if (process.env.ALLOWED_ORIGINS) {
+    process.env.ALLOWED_ORIGINS.split(',').forEach((origin) => {
+      const trimmed = origin.trim();
+      if (trimmed) origins.add(trimmed);
+    });
+  }
+
+  return Array.from(origins);
+}
+
 export function createApp(): Application {
   const app = express();
+  const allowedOrigins = getAllowedOrigins();
 
   app.use(helmet());
   app.use(cors({
-    origin: process.env.CLIENT_URL ?? 'http://localhost:5173',
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+      callback(new Error('Not allowed by CORS'));
+    },
     credentials: true,
   }));
   app.use(express.json());

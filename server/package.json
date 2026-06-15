@@ -6,6 +6,7 @@
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "prisma generate && tsc",
     "start": "node dist/index.js",
+    "postinstall": "prisma generate",
     "test": "cross-env NODE_ENV=test jest --runInBand",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
@@ -26,7 +27,8 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "helmet": "^8.2.0",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.2",
+    "prisma": "^6.19.0"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -39,7 +41,6 @@
     "@types/supertest": "^6.0.3",
     "cross-env": "^7.0.3",
     "jest": "^30.0.5",
-    "prisma": "^6.19.0",
     "supertest": "^7.1.4",
     "ts-jest": "^29.4.1",
     "ts-node": "^10.9.2",

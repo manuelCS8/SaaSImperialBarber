@@ -43,3 +43,8 @@ App: http://localhost:5173
 - `main` → producción
 - `develop` → integración
 - `feature/*` → trabajo por issue
+
+## Despliegue en producción (Vercel + Render)
+Para usuarios reales y entrega al maestro, sigue la guía paso a paso:
+
+**[docs/DESPLIEGUE-PRODUCCION.md](docs/DESPLIEGUE-PRODUCCION.md)**
