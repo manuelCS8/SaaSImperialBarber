@@ -1,31 +1,37 @@
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
+import apiRoutes from './routes';
+import { errorHandler } from './middleware/error.middleware';
 
-// Configurar variables de entorno
 dotenv.config();
 
-const app: Application = express();
-const PORT = process.env.PORT || 5000;
+export function createApp(): Application {
+  const app = express();
 
-// Aduana de Seguridad: Middlewares Globales
-app.use(helmet()); // Inyección de cabeceras seguras contra vulnerabilidades web
-app.use(cors({ origin: '*' })); // Configuración inicial de CORS (ajustar en producción)
-app.use(express.json()); // Sanitización y parseo estricto de payloads en formato JSON
+  app.use(helmet());
+  app.use(cors({
+    origin: process.env.CLIENT_URL ?? 'http://localhost:5173',
+    credentials: true,
+  }));
+  app.use(express.json());
+  app.use(cookieParser());
 
-// Endpoint de salud del sistema (Health Check)
-app.get('/api/v1/health', (req: Request, res: Response) => {
-  res.status(200).json({
-    status: 'success',
-    message: 'SaaSImperialBarber API operando correctamente',
-    timestamp: new Date().toISOString()
+  app.get('/api/v1/health', (_req: Request, res: Response) => {
+    res.status(200).json({
+      status: 'success',
+      message: 'SaaSImperialBarber API operando correctamente',
+      timestamp: new Date().toISOString(),
+    });
   });
-});
 
-// Inicialización del servidor
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
-});
+  app.use('/api/v1', apiRoutes);
+  app.use(errorHandler);
 
+  return app;
+}
+
+const app = createApp();
 export default app;
