@@ -23,10 +23,23 @@ app.get('/api/v1/services', (req: Request, res: Response) => {
     return res.status(401).json({ error: 'No autorizado' });
   }
   return res.status(200).json([
-    { id: 1, name: 'Corte de Cabello Premium', price: 250 },
-    { id: 2, name: 'Perfilado de Barba Imperial', price: 150 }
+    { id: 1, name: 'Corte de Cabello Premium', price: 250 }
   ]);
 });
+
+// Endpoint de Clientes (Commit #3 - NUEVO)
+app.post('/api/v1/clients', (req: Request, res: Response) => {
+  const { name, phone } = req.body;
+
+  // Validación: Si falta el nombre o el teléfono, respondemos 400 Bad Request
+  if (!name || !phone) {
+    return res.status(400).json({ error: 'El nombre y el teléfono son obligatorios' });
+  }
+
+  // Si todo está bien, simulamos que se creó con éxito
+  return res.status(201).json({ success: true, client: { id: 10, name, phone } });
+});
+
 
 // --- SUITE PRINCIPAL DE PRUEBAS ---
 describe('Pruebas de la API - SaaSImperialBarber', () => {
@@ -69,6 +82,27 @@ describe('Pruebas de la API - SaaSImperialBarber', () => {
         
       expect(response.status).toBe(401);
       expect(response.body.error).toBe('No autorizado');
+    });
+  });
+
+  // Pruebas de Clientes (Commit #3 - NUEVO)
+  describe('POST /api/v1/clients', () => {
+    it('Debería responder 201 si el cliente se crea con todos los datos obligatorios', async () => {
+      const response = await request(app)
+        .post('/api/v1/clients')
+        .send({ name: 'Carlos Gómez', phone: '5551234567' });
+
+      expect(response.status).toBe(201);
+      expect(response.body.success).toBe(true);
+    });
+
+    it('Debería responder 400 si falta el campo obligatorio name', async () => {
+      const response = await request(app)
+        .post('/api/v1/clients')
+        .send({ phone: '5551234567' }); // Mandamos teléfono pero NO el nombre
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('El nombre y el teléfono son obligatorios');
     });
   });
 
