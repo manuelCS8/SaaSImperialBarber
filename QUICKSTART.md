@@ -2,15 +2,13 @@
 
 ## Requisitos
 - Node.js 20+ recomendado (funciona con 18 usando Vite 6)
-- Docker Desktop **encendido** (para MariaDB)
+- Docker Desktop **encendido** (para PostgreSQL)
 
-## 1. Base de datos (MariaDB)
+## 1. Base de datos (PostgreSQL)
 Abre Docker Desktop y luego:
 ```bash
 docker compose up -d
 ```
-
-> **Nota:** Si ya tienes MySQL en el puerto 3306, Docker usa el **3307** (ya configurado en `server/.env`).
 
 ## 2. Backend
 ```bash

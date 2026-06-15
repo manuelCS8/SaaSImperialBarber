@@ -1,8 +1,23 @@
 # Despliegue en producción (Vercel + Render)
 
-Guía rápida para que usuarios reales puedan usar el MVP.
+## Backend + base de datos en 1 clic (Render)
 
-**Arquitectura:**
+1. Abre este enlace e inicia sesión con GitHub:
+   **https://render.com/deploy?repo=https://github.com/manuelCS8/SaaSImperialBarber**
+2. Clic en **Apply** — Render crea automáticamente:
+   - Base de datos PostgreSQL (gratis)
+   - API en `https://saas-imperial-barber-api.onrender.com`
+3. Espera ~5–10 min hasta que el servicio diga **Live**.
+4. Prueba: `https://saas-imperial-barber-api.onrender.com/api/v1/health`
+
+El frontend en Vercel ya apunta al API via `client/.env.production`. Tras el deploy de Render, haz **Redeploy** en Vercel (o espera el auto-deploy del siguiente push).
+
+**Credenciales demo:** `admin@imperialbarber.com` / `Admin123!`
+
+---
+
+## Arquitectura
+
 - **Frontend** → [Vercel](https://vercel.com) (carpeta `client/`)
 - **Backend API** → [Render](https://render.com) (carpeta `server/`)
 - **Base de datos** → MySQL/MariaDB en la nube (Railway recomendado)
