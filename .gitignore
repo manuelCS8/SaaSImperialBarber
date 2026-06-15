@@ -29,3 +29,4 @@ yarn-error.log*
 # Archivos locales de Prisma
 /server/prisma/dev.db
 /server/prisma/dev.db-journal
+coverage/
