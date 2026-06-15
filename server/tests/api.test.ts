@@ -7,7 +7,7 @@ app.use(express.json());
 
 // --- SIMULACIONES DE ENDPOINTS ---
 
-// Endpoint de Login (Commit #1)
+// Endpoint de Login
 app.post('/api/v1/auth/login', (req: Request, res: Response) => {
   const { email, password } = req.body;
   if (email === 'barber@imperial.com' && password === 'Password123') {
@@ -16,7 +16,7 @@ app.post('/api/v1/auth/login', (req: Request, res: Response) => {
   return res.status(400).json({ error: 'Credenciales inválidas' });
 });
 
-// Endpoint de Servicios (Commit #2)
+// Endpoint de Servicios
 app.get('/api/v1/services', (req: Request, res: Response) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || authHeader !== 'Bearer fake-jwt-token') {
@@ -27,7 +27,7 @@ app.get('/api/v1/services', (req: Request, res: Response) => {
   ]);
 });
 
-// Endpoint de Clientes (Commit #3 - NUEVO)
+// Endpoint de Clientes
 app.post('/api/v1/clients', (req: Request, res: Response) => {
   const { name, phone } = req.body;
 
@@ -85,7 +85,7 @@ describe('Pruebas de la API - SaaSImperialBarber', () => {
     });
   });
 
-  // Pruebas de Clientes (Commit #3 - NUEVO)
+  // Pruebas de Clientes
   describe('POST /api/v1/clients', () => {
     it('Debería responder 201 si el cliente se crea con todos los datos obligatorios', async () => {
       const response = await request(app)
@@ -105,5 +105,4 @@ describe('Pruebas de la API - SaaSImperialBarber', () => {
       expect(response.body.error).toBe('El nombre y el teléfono son obligatorios');
     });
   });
-
 });
