@@ -4,7 +4,7 @@ SaaS para barberias que buscan optimizar su tiempo y recursos: citas, clientes, 
 
 ## Sitio en vivo
 
-**https://saas-imperial-barber.vercel.app**
+**https://imperial-barber-tau.vercel.app**
 
 > Credenciales de demo: `admin@imperialbarber.com` / `Admin123!`
 
