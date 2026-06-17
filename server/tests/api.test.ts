@@ -1,35 +1,108 @@
+import { describe, it, expect } from '@jest/globals';
 import request from 'supertest';
-import express from 'express';
+import express, { Request, Response } from 'express';
 
-// Creamos una app de Express temporal para verificar que tus herramientas
-// Jest y Supertest validan correctamente los códigos HTTP (200, 400, 403)
 const app = express();
+app.use(express.json());
 
-app.get('/api/v1/test-200', (req, res) => {
-  res.status(200).json({ success: true });
+// --- SIMULACIONES DE ENDPOINTS ---
+
+// Endpoint de Login
+app.post('/api/v1/auth/login', (req: Request, res: Response) => {
+  const { email, password } = req.body;
+  if (email === 'barber@imperial.com' && password === 'Password123') {
+    return res.status(200).json({ success: true, token: 'fake-jwt-token' });
+  }
+  return res.status(400).json({ error: 'Credenciales inválidas' });
 });
 
-app.get('/api/v1/test-400', (req, res) => {
-  res.status(400).json({ error: 'Bad Request' });
+// Endpoint de Servicios
+app.get('/api/v1/services', (req: Request, res: Response) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || authHeader !== 'Bearer fake-jwt-token') {
+    return res.status(401).json({ error: 'No autorizado' });
+  }
+  return res.status(200).json([
+    { id: 1, name: 'Corte de Cabello Premium', price: 250 }
+  ]);
 });
 
-app.get('/api/v1/test-403', (req, res) => {
-  res.status(403).json({ error: 'Forbidden' });
+// Endpoint de Clientes
+app.post('/api/v1/clients', (req: Request, res: Response) => {
+  const { name, phone } = req.body;
+
+  // Validación: Si falta el nombre o el teléfono, respondemos 400 Bad Request
+  if (!name || !phone) {
+    return res.status(400).json({ error: 'El nombre y el teléfono son obligatorios' });
+  }
+
+  // Si todo está bien, simulamos que se creó con éxito
+  return res.status(201).json({ success: true, client: { id: 10, name, phone } });
 });
 
-describe('Estructura Base de Pruebas HTTP - SaaSImperialBarber', () => {
-  it('Debería responder y validar un código de estado 200', async () => {
-    const response = await request(app).get('/api/v1/test-200');
-    expect(response.statusCode).toBe(200);
+
+// --- SUITE PRINCIPAL DE PRUEBAS ---
+describe('Pruebas de la API - SaaSImperialBarber', () => {
+  
+  // Pruebas de Login
+  describe('POST /api/v1/auth/login', () => {
+    it('Debería responder 200 y regresar un token con credenciales correctas', async () => {
+      const response = await request(app)
+        .post('/api/v1/auth/login')
+        .send({ email: 'barber@imperial.com', password: 'Password123' });
+        
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('token');
+    });
+
+    it('Debería responder 400 cuando las credenciales son inválidas', async () => {
+      const response = await request(app)
+        .post('/api/v1/auth/login')
+        .send({ email: 'barber@imperial.com', password: 'password-incorrecto' });
+        
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Credenciales inválidas');
+    });
   });
 
-  it('Debería responder y validar un código de estado 400', async () => {
-    const response = await request(app).get('/api/v1/test-400');
-    expect(response.statusCode).toBe(400);
+  // Pruebas de Servicios
+  describe('GET /api/v1/services', () => {
+    it('Debería responder 200 y regresar la lista de servicios si está autenticado', async () => {
+      const response = await request(app)
+        .get('/api/v1/services')
+        .set('Authorization', 'Bearer fake-jwt-token');
+        
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+    });
+
+    it('Debería responder 401 si no se envía el token de autenticación', async () => {
+      const response = await request(app)
+        .get('/api/v1/services');
+        
+      expect(response.status).toBe(401);
+      expect(response.body.error).toBe('No autorizado');
+    });
   });
 
-  it('Debería responder y validar un código de estado 403', async () => {
-    const response = await request(app).get('/api/v1/test-403');
-    expect(response.statusCode).toBe(403);
+  // Pruebas de Clientes
+  describe('POST /api/v1/clients', () => {
+    it('Debería responder 201 si el cliente se crea con todos los datos obligatorios', async () => {
+      const response = await request(app)
+        .post('/api/v1/clients')
+        .send({ name: 'Carlos Gómez', phone: '5551234567' });
+
+      expect(response.status).toBe(201);
+      expect(response.body.success).toBe(true);
+    });
+
+    it('Debería responder 400 si falta el campo obligatorio name', async () => {
+      const response = await request(app)
+        .post('/api/v1/clients')
+        .send({ phone: '5551234567' }); // Mandamos teléfono pero NO el nombre
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('El nombre y el teléfono son obligatorios');
+    });
   });
 });
