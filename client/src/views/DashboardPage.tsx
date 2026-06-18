@@ -7,11 +7,13 @@ import {
   getBarbers,
   getClients,
   getCriticalInventory,
+  getHealth,
 } from '../services/api';
 import { formatMoney } from '../utils/format';
 
 export function DashboardPage() {
   const { token } = useAuth();
+  const [apiOnline, setApiOnline] = useState<boolean | null>(null);
   const [stats, setStats] = useState({
     appointments: 0,
     confirmed: 0,
@@ -19,6 +21,12 @@ export function DashboardPage() {
     critical: 0,
     commissionsTotal: 0,
   });
+
+  useEffect(() => {
+    getHealth()
+      .then(() => setApiOnline(true))
+      .catch(() => setApiOnline(false));
+  }, []);
 
   useEffect(() => {
     if (!token) return;
@@ -63,6 +71,18 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      <div
+        className={`rounded-xl border px-4 py-3 text-sm ${
+          apiOnline
+            ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-200'
+            : apiOnline === false
+              ? 'border-red-500/30 bg-red-500/10 text-red-200'
+              : 'border-slate-700 bg-slate-900 text-slate-400'
+        }`}
+      >
+        API: {apiOnline ? 'Online' : apiOnline === false ? 'Offline — revisa el backend en Render' : 'Verificando...'}
+      </div>
+
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         {cards.map((card) => (
           <Card key={card.label}>
@@ -90,7 +110,7 @@ export function DashboardPage() {
           <p className="text-sm leading-6 text-slate-300">
             Centraliza la agenda, elimina cuadernos físicos y reduce tiempos muertos con
             confirmaciones activas. El panel conecta frontend React con APIs Express + Prisma
-            sobre MariaDB.
+            sobre PostgreSQL.
           </p>
         </Card>
       </div>

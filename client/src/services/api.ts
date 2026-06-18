@@ -47,6 +47,10 @@ async function request<T>(
   return body.data as T;
 }
 
+export async function getHealth() {
+  return request<{ status: string }>('/health');
+}
+
 export async function login(email: string, password: string) {
   return request<{ user: User; accessToken: string }>('/auth/login', {
     method: 'POST',
