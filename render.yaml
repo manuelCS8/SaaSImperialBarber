@@ -11,8 +11,8 @@ services:
     plan: free
     region: oregon
     rootDir: server
-    buildCommand: npm install && npx prisma generate && npm run build
-    startCommand: npx prisma db push && npx prisma db seed && node dist/index.js
+    buildCommand: npm install --include=dev && npm run build && npx prisma db push && npx prisma db seed
+    startCommand: node dist/index.js
     healthCheckPath: /api/v1/health
     envVars:
       - key: NODE_ENV
