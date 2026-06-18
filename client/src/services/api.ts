@@ -32,11 +32,34 @@ async function request<T>(
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers,
-    credentials: 'include',
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 90_000);
+
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE}${path}`, {
+      ...options,
+      headers,
+      credentials: 'include',
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new Error(
+        'El servidor tarda en responder (Render free tier). Abre la URL del API en otra pestaña, espera 1–2 minutos hasta ver JSON y vuelve a intentar.'
+      );
+    }
+    throw new Error('No se pudo conectar con el API. Verifica que el backend en Render esté activo.');
+  } finally {
+    clearTimeout(timeoutId);
+  }
+
+  const contentType = response.headers.get('content-type') ?? '';
+  if (!contentType.includes('application/json')) {
+    throw new Error(
+      'El API está despertando en Render. Abre https://saas-imperial-barber-api.onrender.com/api/v1/health en otra pestaña, espera el JSON y reintenta el login.'
+    );
+  }
 
   const body: ApiResponse<T> = await response.json();
 
