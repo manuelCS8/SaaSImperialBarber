@@ -9,9 +9,8 @@
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist",
     "rootDir": "./src",
-    "types": ["node", "jest"]
+    "typeRoots": ["./node_modules/@types", "./src/types"]
   },
   "include": ["src/**/*"],
-  "exclude": ["src/__tests__/**"],
-  "typeRoots": ["./node_modules/@types", "./src/types"]
+  "exclude": ["src/__tests__/**"]
 }
