@@ -1,6 +1,7 @@
 import { AppointmentStatus, PaymentStatus } from '@prisma/client';
 import { prisma } from '../lib/prisma';
 import { calculateCommissionAmount } from '../utils/commission';
+import { validateAppointmentDate } from '../utils/validation';
 
 export async function listAppointments(filters?: {
   barberId?: string;
@@ -38,6 +39,8 @@ export async function createAppointment(input: {
   if (services.length !== input.serviceIds.length) {
     throw new Error('INVALID_SERVICES');
   }
+
+  validateAppointmentDate(input.appointmentDate);
 
   return prisma.appointment.create({
     data: {

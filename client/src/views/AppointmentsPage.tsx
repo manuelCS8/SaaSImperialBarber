@@ -11,6 +11,11 @@ import {
   updateAppointmentStatus,
 } from '../services/api';
 import type { Appointment, AppointmentStatus, Barber, Client, Service } from '../types';
+import {
+  getMaxAppointmentDatetime,
+  getMinAppointmentDatetime,
+  validateAppointmentDatetime,
+} from '../utils/datetime';
 import { formatDate, formatMoney, statusClass, statusLabel } from '../utils/format';
 
 export function AppointmentsPage() {
@@ -59,6 +64,12 @@ export function AppointmentsPage() {
     event.preventDefault();
     if (!token) return;
 
+    const dateError = validateAppointmentDatetime(form.appointmentDate);
+    if (dateError) {
+      setError(dateError);
+      return;
+    }
+
     try {
       await createAppointment(token, {
         clientId: form.clientId,
@@ -96,7 +107,19 @@ export function AppointmentsPage() {
 
   return (
     <div className="space-y-6">
-      <Card title="Nueva cita" subtitle="Agenda un servicio para un cliente">
+      <Card title="Nueva cita" subtitle="Agenda un servicio para un cliente de tu barbería">
+        {services.length > 0 && (
+          <div className="mb-4 rounded-lg border border-slate-800 bg-slate-900/50 px-4 py-3 text-base text-slate-300">
+            <p className="font-medium text-white">Servicios disponibles</p>
+            <ul className="mt-2 space-y-1">
+              {services.map((service) => (
+                <li key={service.id}>
+                  {service.name} · {formatMoney(service.price)} · {service.durationMinutes} min
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         <form className="grid gap-4 md:grid-cols-2" onSubmit={handleCreate}>
           <Select
             label="Cliente"
@@ -144,6 +167,8 @@ export function AppointmentsPage() {
             label="Fecha y hora"
             type="datetime-local"
             value={form.appointmentDate}
+            min={getMinAppointmentDatetime()}
+            max={getMaxAppointmentDatetime()}
             onChange={(e) => setForm((prev) => ({ ...prev, appointmentDate: e.target.value }))}
             required
           />

@@ -10,6 +10,7 @@ export function ClientsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [form, setForm] = useState({ name: '', phone: '', email: '' });
+  const [success, setSuccess] = useState('');
 
   async function loadClients() {
     if (!token) return;
@@ -32,18 +33,27 @@ export function ClientsPage() {
     event.preventDefault();
     if (!token) return;
 
+    const digits = form.phone.replace(/\D/g, '');
+    if (digits.length < 10) {
+      setError('El teléfono debe tener al menos 10 dígitos numéricos');
+      return;
+    }
+
     try {
-      await createClient(token, form);
+      await createClient(token, { ...form, phone: digits });
       setForm({ name: '', phone: '', email: '' });
+      setSuccess('Cliente guardado correctamente');
+      setError('');
       await loadClients();
     } catch (err) {
+      setSuccess('');
       setError(err instanceof Error ? err.message : 'No se pudo crear el cliente');
     }
   }
 
   return (
     <div className="space-y-6">
-      <Card title="Registrar cliente" subtitle="Tabla normalizada sin duplicar datos en citas">
+      <Card title="Registrar cliente" subtitle="Agrega clientes para poder agendar citas">
         <form className="grid gap-4 md:grid-cols-3" onSubmit={handleCreate}>
           <Input
             label="Nombre completo"
@@ -53,8 +63,12 @@ export function ClientsPage() {
           />
           <Input
             label="Teléfono"
+            type="tel"
+            inputMode="numeric"
+            pattern="[0-9]{10,15}"
             value={form.phone}
-            onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))}
+            onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value.replace(/\D/g, '') }))}
+            placeholder="10 dígitos"
             required
           />
           <Input
@@ -69,13 +83,19 @@ export function ClientsPage() {
         </form>
       </Card>
 
+      {success && (
+        <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-base text-emerald-200">
+          {success}
+        </p>
+      )}
+
       {error && (
         <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
           {error}
         </p>
       )}
 
-      <Card title="Clientes registrados" subtitle="Base única para citas e historial estético">
+      <Card title="Clientes registrados" subtitle="Listado de clientes de tu barbería">
         {loading ? (
           <p className="text-slate-400">Cargando clientes...</p>
         ) : clients.length === 0 ? (

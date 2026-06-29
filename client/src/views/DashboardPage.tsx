@@ -94,10 +94,10 @@ export function DashboardPage() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card
-          title="Flujo MVP activo"
-          subtitle="Lo que ya puedes demostrar en local"
+          title="Cómo usar el panel"
+          subtitle="Guía rápida para tu barbería"
         >
-          <ol className="space-y-3 text-sm text-slate-300">
+          <ol className="space-y-3 text-base text-slate-200">
             <li>1. Registrar o seleccionar un cliente</li>
             <li>2. Crear una cita con barbero y servicio</li>
             <li>3. Confirmar la cita desde la agenda</li>
@@ -106,11 +106,10 @@ export function DashboardPage() {
           </ol>
         </Card>
 
-        <Card title="Propuesta de valor" subtitle="SaaS Imperial Barber">
-          <p className="text-sm leading-6 text-slate-300">
-            Centraliza la agenda, elimina cuadernos físicos y reduce tiempos muertos con
-            confirmaciones activas. El panel conecta frontend React con APIs Express + Prisma
-            sobre PostgreSQL.
+        <Card title="¿Para quién es?" subtitle="SaaS Imperial Barber">
+          <p className="text-base leading-7 text-slate-200">
+            Es para ti como dueño o barbero: centraliza la agenda, elimina cuadernos físicos y
+            reduce tiempos muertos. Tus clientes no usan esta pantalla; tú registras sus citas aquí.
           </p>
         </Card>
       </div>

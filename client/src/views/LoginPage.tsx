@@ -32,9 +32,14 @@ export function LoginPage() {
             <h1 className="mt-4 text-4xl font-bold leading-tight text-white md:text-5xl">
               Gestión inteligente para barberías premium
             </h1>
-            <p className="mt-4 max-w-lg text-lg text-slate-300">
-              Agenda, clientes, comisiones e inventario en un solo panel. Diseñado para reducir
-              no-shows y optimizar cada cita.
+            <p className="mt-4 max-w-lg text-xl text-slate-200">
+              Panel para <strong className="text-white">dueños y barberos</strong>: registra clientes,
+              agenda citas y controla comisiones. Tus clientes reciben confirmación; tú administras
+              todo desde aquí.
+            </p>
+            <p className="mt-3 max-w-lg text-base text-slate-400">
+              Tus datos se guardan en la nube. Si pierdes tu dispositivo, vuelves a entrar con tu
+              correo y contraseña.
             </p>
 
             <div className="mt-8 grid gap-3 sm:grid-cols-3">
@@ -49,8 +54,8 @@ export function LoginPage() {
             </div>
           </div>
 
-          <Card title="Iniciar sesión" subtitle="Accede al panel de administración">
-            <form className="space-y-4" onSubmit={handleSubmit}>
+          <Card title="Iniciar sesión" subtitle="Panel de administración para tu barbería">
+            <form className="space-y-4 text-base" onSubmit={handleSubmit}>
               <Input
                 label="Correo electrónico"
                 type="email"
@@ -75,6 +80,10 @@ export function LoginPage() {
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? 'Entrando...' : 'Entrar al panel'}
               </Button>
+              <p className="text-center text-sm text-slate-500">
+                ¿Olvidaste tu contraseña? Contacta al administrador del sistema (próximamente
+                recuperación automática).
+              </p>
             </form>
           </Card>
         </div>
