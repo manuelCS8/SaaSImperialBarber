@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppointmentStatus } from '@prisma/client';
 import * as appointmentService from '../services/appointment.service';
+import { sendAppointmentConfirmationEmail } from '../services/email.service';
 import { sendError, sendSuccess } from '../utils/response';
 
 export async function list(req: Request, res: Response, next: NextFunction) {
@@ -48,7 +49,19 @@ export async function updateStatus(req: Request, res: Response, next: NextFuncti
     }
 
     const appointment = await appointmentService.updateAppointmentStatus(String(req.params.id), status);
-    return sendSuccess(res, appointment, 'Estado de cita actualizado');
+
+    let emailNotification;
+    if (status === AppointmentStatus.confirmed) {
+      emailNotification = await sendAppointmentConfirmationEmail({
+        clientName: appointment.client.name,
+        clientEmail: appointment.client.email,
+        barberName: appointment.barber.name,
+        appointmentDate: appointment.appointmentDate,
+        services: appointment.services.map((item) => item.service.name),
+      });
+    }
+
+    return sendSuccess(res, { ...appointment, emailNotification }, 'Estado de cita actualizado');
   } catch (error) {
     return next(error);
   }

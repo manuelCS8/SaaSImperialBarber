@@ -77,13 +77,44 @@ Base URL: `http://localhost:5000/api/v1`
 | GET | `/inventory/critical` | admin_owner, barber |
 | POST | `/inventory/movements` | admin_owner |
 
+### Confirmar cita + email externo (Resend)
+`PATCH /appointments/:id/status` con `{ "status": "confirmed" }` actualiza la cita y llama a la **API externa Resend** (`https://api.resend.com/emails`) para enviar confirmación al correo del cliente.
+
+Respuesta incluye `emailNotification`:
+```json
+{
+  "status": "success",
+  "data": {
+    "id": "...",
+    "status": "confirmed",
+    "client": { "name": "Juan Pérez", "email": "juan@example.com" },
+    "emailNotification": {
+      "provider": "resend",
+      "sent": true,
+      "messageId": "re_abc123"
+    }
+  }
+}
+```
+
+Si el cliente no tiene email o falta `RESEND_API_KEY`, `sent` será `false` con `skippedReason`.
+
+## Integraciones externas (ACT-9)
+
+| Proveedor | Uso | Variable de entorno |
+|-----------|-----|---------------------|
+| **Resend** | Email de confirmación de cita | `RESEND_API_KEY`, `RESEND_FROM_EMAIL` |
+
+| Método | Ruta | Auth | Descripción |
+|--------|------|------|-------------|
+| GET | `/integrations/resend/status` | admin_owner | Verifica si Resend está configurado |
+
 ## Flujo de negocio MVP (secuencia)
 1. Cliente agenda cita → `POST /appointments`
-2. Barbero confirma → `PATCH /appointments/:id/status` (`confirmed`)
-3. Recordatorio WhatsApp → servicio externo (futuro webhook)
-4. Cliente asiste → `POST /appointments/:id/complete`
-5. Sistema calcula pago + comisión del barbero
-6. Inventario crítico → `GET /inventory/critical`
+2. Barbero confirma → `PATCH /appointments/:id/status` (`confirmed`) + **email Resend**
+3. Cliente asiste → `POST /appointments/:id/complete`
+4. Sistema calcula pago + comisión del barbero
+5. Inventario crítico → `GET /inventory/critical`
 
 ## Modelo de datos (Prisma)
 Tablas normalizadas sin duplicar `client_name`/`client_phone` en citas:

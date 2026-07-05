@@ -5,6 +5,7 @@ import clientRoutes from './client.routes';
 import serviceRoutes from './service.routes';
 import barberRoutes from './barber.routes';
 import inventoryRoutes from './inventory.routes';
+import integrationsRoutes from './integrations.routes';
 
 const router = Router();
 
@@ -14,5 +15,6 @@ router.use('/clients', clientRoutes);
 router.use('/services', serviceRoutes);
 router.use('/barbers', barberRoutes);
 router.use('/inventory', inventoryRoutes);
+router.use('/integrations', integrationsRoutes);
 
 export default router;
