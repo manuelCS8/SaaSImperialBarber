@@ -21,7 +21,7 @@ describe('Security and Integration Testing Suite - SaaSImperialBarber', () => {
     });
   });
 
-  // TAREA 2: Protección de la ruta de Clientes
+  // TAREA 2: Protección de la ruta de Clientes (Validación 401).
   describe('GET /api/v1/clients (Rutas Protegidas)', () => {
     it('Debería rechazar la petición con un error 401 Unauthorized si no se envía el token', async () => {
       const response = await request(API_URL)
