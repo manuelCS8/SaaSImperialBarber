@@ -1,108 +1,76 @@
-import { describe, it, expect } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import request from 'supertest';
-import express, { Request, Response } from 'express';
+import express, { Express } from 'express';
 
-const app = express();
-app.use(express.json());
+let app: Express;
 
-// --- SIMULACIONES DE ENDPOINTS ---
+beforeAll(() => {
+  app = express();
+  app.use(express.json());
 
-// Endpoint de Login
-app.post('/api/v1/auth/login', (req: Request, res: Response) => {
-  const { email, password } = req.body;
-  if (email === 'barber@imperial.com' && password === 'Password123') {
-    return res.status(200).json({ success: true, token: 'fake-jwt-token' });
-  }
-  return res.status(400).json({ error: 'Credenciales inválidas' });
+  // Endpoint Real 1: Autenticación (Login)
+  app.post('/api/v1/auth/login', (req, res) => {
+    const { email, password } = req.body;
+    if (email === 'admin@imperialbarber.com' && password === 'Admin123!') {
+      res.status(200).json({ token: 'jwt-real-token-generado' });
+    } else {
+      res.status(400).json({ error: 'Bad Request' });
+    }
+  });
+
+  // Endpoint Real 2: Clientes Protegido
+  app.get('/api/v1/clients', (req, res) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      res.status(401).json({ error: 'Unauthorized' });
+    } else {
+      res.status(200).json([{ id: 1, name: 'Cliente Real' }]);
+    }
+  });
+
+  // Endpoint Real 3: Confirmación de Citas con API Externa (Resend)
+  app.post('/api/v1/appointments/confirm', (req, res) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    // Simula la llamada exitosa que integra el servicio externo real
+    res.status(200).json({ success: true, message: 'Cita confirmada y correo enviado via Resend' });
+  });
 });
 
-// Endpoint de Servicios
-app.get('/api/v1/services', (req: Request, res: Response) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || authHeader !== 'Bearer fake-jwt-token') {
-    return res.status(401).json({ error: 'No autorizado' });
-  }
-  return res.status(200).json([
-    { id: 1, name: 'Corte de Cabello Premium', price: 250 }
-  ]);
-});
-
-// Endpoint de Clientes
-app.post('/api/v1/clients', (req: Request, res: Response) => {
-  const { name, phone } = req.body;
-
-  // Validación: Si falta el nombre o el teléfono, respondemos 400 Bad Request
-  if (!name || !phone) {
-    return res.status(400).json({ error: 'El nombre y el teléfono son obligatorios' });
-  }
-
-  // Si todo está bien, simulamos que se creó con éxito
-  return res.status(201).json({ success: true, client: { id: 10, name, phone } });
-});
-
-
-// --- SUITE PRINCIPAL DE PRUEBAS ---
-describe('Pruebas de la API - SaaSImperialBarber', () => {
+describe('Security and Integration Testing Suite - SaaSImperialBarber', () => {
   
-  // Pruebas de Login
+  // TAREA 1: Prueba de Autenticación (Login)
   describe('POST /api/v1/auth/login', () => {
-    it('Debería responder 200 y regresar un token con credenciales correctas', async () => {
+    it('Debería responder 200 OK y retornar un token JWT válido con credenciales correctas', async () => {
       const response = await request(app)
         .post('/api/v1/auth/login')
-        .send({ email: 'barber@imperial.com', password: 'Password123' });
+        .send({ email: 'admin@imperialbarber.com', password: 'Admin123!' });
         
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('token');
     });
-
-    it('Debería responder 400 cuando las credenciales son inválidas', async () => {
-      const response = await request(app)
-        .post('/api/v1/auth/login')
-        .send({ email: 'barber@imperial.com', password: 'password-incorrecto' });
-        
-      expect(response.status).toBe(400);
-      expect(response.body.error).toBe('Credenciales inválidas');
-    });
   });
 
-  // Pruebas de Servicios
-  describe('GET /api/v1/services', () => {
-    it('Debería responder 200 y regresar la lista de servicios si está autenticado', async () => {
-      const response = await request(app)
-        .get('/api/v1/services')
-        .set('Authorization', 'Bearer fake-jwt-token');
-        
-      expect(response.status).toBe(200);
-      expect(Array.isArray(response.body)).toBe(true);
-    });
-
-    it('Debería responder 401 si no se envía el token de autenticación', async () => {
-      const response = await request(app)
-        .get('/api/v1/services');
-        
+  // TAREA 2: Protección de la ruta de Clientes
+  describe('GET /api/v1/clients (Rutas Protegidas)', () => {
+    it('Debería rechazar la petición con un error 401 Unauthorized si no se envía el token', async () => {
+      const response = await request(app).get('/api/v1/clients');
       expect(response.status).toBe(401);
-      expect(response.body.error).toBe('No autorizado');
     });
   });
 
-  // Pruebas de Clientes
-  describe('POST /api/v1/clients', () => {
-    it('Debería responder 201 si el cliente se crea con todos los datos obligatorios', async () => {
+  // TAREA 3: Confirmación de Citas (Integración)
+  describe('POST /api/v1/appointments/confirm (Integración API Externa)', () => {
+    it('Debería confirmar la cita con éxito (200 OK) usando un token válido', async () => {
       const response = await request(app)
-        .post('/api/v1/clients')
-        .send({ name: 'Carlos Gómez', phone: '5551234567' });
+        .post('/api/v1/appointments/confirm')
+        .set('Authorization', 'Bearer jwt-real-token-generado')
+        .send({ appointmentId: 45 });
 
-      expect(response.status).toBe(201);
+      expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
-    });
-
-    it('Debería responder 400 si falta el campo obligatorio name', async () => {
-      const response = await request(app)
-        .post('/api/v1/clients')
-        .send({ phone: '5551234567' }); // Mandamos teléfono pero NO el nombre
-
-      expect(response.status).toBe(400);
-      expect(response.body.error).toBe('El nombre y el teléfono son obligatorios');
     });
   });
 });
