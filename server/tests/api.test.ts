@@ -31,7 +31,7 @@ describe('Security and Integration Testing Suite - SaaSImperialBarber', () => {
     });
   });
 
-  // TAREA 3: Confirmación de Citas (Integración)
+  // TAREA 3: Confirmación de Citas (Integración con Endpoint Real).
   describe('POST /api/v1/appointments/confirm (Integración API Externa)', () => {
     it('Debería confirmar la cita con éxito (200 OK) usando un token válido', async () => {
       const response = await request(API_URL)
