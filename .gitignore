@@ -28,3 +28,10 @@ dist-ssr
 /server/prisma/dev.db
 /server/prisma/dev.db-journal
 coverage/
+
+# Variables de entorno
+.env
+.env.local
+.env.production
+server/.env
+client/.env
