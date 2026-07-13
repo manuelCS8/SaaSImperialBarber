@@ -10,13 +10,47 @@ import {
   getServices,
   updateAppointmentStatus,
 } from '../services/api';
-import type { Appointment, AppointmentStatus, Barber, Client, Service } from '../types';
+import type { Appointment, AppointmentStatus, Barber, Client, EmailNotification, Service } from '../types';
 import {
   getMaxAppointmentDatetime,
   getMinAppointmentDatetime,
   validateAppointmentDatetime,
 } from '../utils/datetime';
 import { formatDate, formatMoney, statusClass, statusLabel } from '../utils/format';
+import {
+  closeAlert,
+  showErrorAlert,
+  showLoadingAlert,
+  showSuccessAlert,
+  showWarningAlert,
+} from '../utils/swalTheme';
+
+type ActionKind = 'create' | 'confirm' | 'complete' | 'cancel';
+
+async function showEmailResultAlert(notification?: EmailNotification) {
+  if (!notification) {
+    await showSuccessAlert('Cita confirmada', 'El estado de la cita se actualizó correctamente.');
+    return;
+  }
+
+  if (notification.sent) {
+    await showSuccessAlert(
+      'Correo enviado',
+      'La cita fue confirmada y el cliente recibió el correo de confirmación en su bandeja.'
+    );
+    return;
+  }
+
+  const detail =
+    notification.error ??
+    notification.skippedReason ??
+    'No se pudo enviar el correo de confirmación.';
+
+  await showWarningAlert(
+    'Cita confirmada sin correo',
+    `La cita quedó confirmada, pero el email no se envió: ${detail}`
+  );
+}
 
 export function AppointmentsPage() {
   const { token } = useAuth();
@@ -26,6 +60,8 @@ export function AppointmentsPage() {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [actionLoading, setActionLoading] = useState<{ id: string; kind: ActionKind } | null>(null);
+  const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({
     clientId: '',
     barberId: '',
@@ -62,13 +98,16 @@ export function AppointmentsPage() {
 
   async function handleCreate(event: React.FormEvent) {
     event.preventDefault();
-    if (!token) return;
+    if (!token || creating) return;
 
     const dateError = validateAppointmentDatetime(form.appointmentDate);
     if (dateError) {
       setError(dateError);
       return;
     }
+
+    setCreating(true);
+    setError('');
 
     try {
       await createAppointment(token, {
@@ -80,29 +119,80 @@ export function AppointmentsPage() {
       });
       setForm({ clientId: '', barberId: '', serviceId: '', appointmentDate: '', notes: '' });
       await loadData();
+      await showSuccessAlert('Cita agendada', 'La cita se registró correctamente en la agenda.');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo crear la cita');
+      const message = err instanceof Error ? err.message : 'No se pudo crear la cita';
+      setError(message);
+      await showErrorAlert('No se pudo agendar', message);
+    } finally {
+      setCreating(false);
     }
   }
 
   async function changeStatus(id: string, status: AppointmentStatus) {
-    if (!token) return;
+    if (!token || actionLoading) return;
+
+    const kind: ActionKind = status === 'confirmed' ? 'confirm' : 'cancel';
+    setActionLoading({ id, kind });
+    setError('');
+
+    if (status === 'confirmed') {
+      showLoadingAlert(
+        'Confirmando cita...',
+        'Estamos actualizando la cita y enviando el correo al cliente. El servidor puede tardar unos segundos — no cierres esta ventana.'
+      );
+    }
+
     try {
-      await updateAppointmentStatus(token, id, status);
+      const updated = await updateAppointmentStatus(token, id, status);
       await loadData();
+
+      if (status === 'confirmed') {
+        closeAlert();
+        await showEmailResultAlert(updated.emailNotification);
+      } else if (status === 'cancelled') {
+        await showSuccessAlert('Cita cancelada', 'La cita se marcó como cancelada.');
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo actualizar la cita');
+      closeAlert();
+      const message = err instanceof Error ? err.message : 'No se pudo actualizar la cita';
+      setError(message);
+      await showErrorAlert('Error al actualizar', message);
+    } finally {
+      setActionLoading(null);
     }
   }
 
   async function handleComplete(id: string) {
-    if (!token) return;
+    if (!token || actionLoading) return;
+
+    setActionLoading({ id, kind: 'complete' });
+    setError('');
+    showLoadingAlert(
+      'Completando cita...',
+      'Calculando pago y comisión del barbero. Espera un momento.'
+    );
+
     try {
       await completeAppointment(token, id);
       await loadData();
+      closeAlert();
+      await showSuccessAlert(
+        'Cita completada',
+        'Se registró el pago y la comisión del barbero automáticamente.'
+      );
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo completar la cita');
+      closeAlert();
+      const message = err instanceof Error ? err.message : 'No se pudo completar la cita';
+      setError(message);
+      await showErrorAlert('Error al completar', message);
+    } finally {
+      setActionLoading(null);
     }
+  }
+
+  function actionLabel(id: string, kind: ActionKind, idle: string, busy: string) {
+    return actionLoading?.id === id && actionLoading.kind === kind ? busy : idle;
   }
 
   return (
@@ -131,6 +221,7 @@ export function AppointmentsPage() {
             {clients.map((client) => (
               <option key={client.id} value={client.id}>
                 {client.name} · {client.phone}
+                {client.email ? ` · ${client.email}` : ''}
               </option>
             ))}
           </Select>
@@ -183,7 +274,9 @@ export function AppointmentsPage() {
           </div>
 
           <div className="md:col-span-2">
-            <Button type="submit">Agendar cita</Button>
+            <Button type="submit" disabled={creating}>
+              {creating ? 'Agendando...' : 'Agendar cita'}
+            </Button>
           </div>
         </form>
       </Card>
@@ -209,6 +302,7 @@ export function AppointmentsPage() {
                 (sum, item) => sum + Number(item.priceApplied),
                 0
               );
+              const busy = actionLoading?.id === appointment.id;
 
               return (
                 <article
@@ -230,6 +324,9 @@ export function AppointmentsPage() {
                         {appointment.services.map((item) => item.service.name).join(', ')} ·{' '}
                         {formatMoney(total)}
                       </p>
+                      {appointment.client.email && (
+                        <p className="mt-1 text-xs text-slate-500">{appointment.client.email}</p>
+                      )}
                       {appointment.commission && (
                         <p className="mt-1 text-sm text-emerald-300">
                           Comisión: {formatMoney(appointment.commission.commissionAmount)}
@@ -239,20 +336,25 @@ export function AppointmentsPage() {
 
                     <div className="flex flex-wrap gap-2">
                       {appointment.status === 'scheduled' && (
-                        <Button variant="secondary" onClick={() => changeStatus(appointment.id, 'confirmed')}>
-                          Confirmar
+                        <Button
+                          variant="secondary"
+                          disabled={busy}
+                          onClick={() => changeStatus(appointment.id, 'confirmed')}
+                        >
+                          {actionLabel(appointment.id, 'confirm', 'Confirmar', 'Confirmando...')}
                         </Button>
                       )}
                       {['scheduled', 'confirmed'].includes(appointment.status) && (
                         <>
-                          <Button onClick={() => handleComplete(appointment.id)}>
-                            Completar
+                          <Button disabled={busy} onClick={() => handleComplete(appointment.id)}>
+                            {actionLabel(appointment.id, 'complete', 'Completar', 'Completando...')}
                           </Button>
                           <Button
                             variant="danger"
+                            disabled={busy}
                             onClick={() => changeStatus(appointment.id, 'cancelled')}
                           >
-                            Cancelar
+                            {actionLabel(appointment.id, 'cancel', 'Cancelar', 'Cancelando...')}
                           </Button>
                         </>
                       )}

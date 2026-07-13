@@ -99,11 +99,18 @@ Respuesta incluye `emailNotification`:
 
 Si el cliente no tiene email o falta `RESEND_API_KEY`, `sent` será `false` con `skippedReason`.
 
+**Dominio de producción:** `imperialbarber.online` — ver guía `docs/RESEND-DOMAIN-SETUP.md`.
+
+| Escenario | `RESEND_FROM_EMAIL` | ¿Llega a cualquier cliente? |
+|-----------|---------------------|-------------------------------|
+| Sandbox | `onboarding@resend.dev` | No — solo email de cuenta Resend |
+| Producción | `noreply@imperialbarber.online` | Sí — con dominio Verified en Resend |
+
 ## Integraciones externas (ACT-9)
 
 | Proveedor | Uso | Variable de entorno |
 |-----------|-----|---------------------|
-| **Resend** | Email de confirmación de cita | `RESEND_API_KEY`, `RESEND_FROM_EMAIL` |
+| **Resend** | Email de confirmación de cita | `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `RESEND_FROM_NAME` |
 
 | Método | Ruta | Auth | Descripción |
 |--------|------|------|-------------|

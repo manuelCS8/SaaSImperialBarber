@@ -10,3 +10,20 @@
     @apply bg-slate-950 text-slate-100 antialiased text-base;
   }
 }
+
+/* SweetAlert2 — tema Imperial Barber */
+.imperial-swal-popup {
+  border: 1px solid rgb(30 41 59) !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.5) !important;
+}
+
+.imperial-swal-btn {
+  border-radius: 0.5rem !important;
+  font-weight: 600 !important;
+  color: #020617 !important;
+}
+
+.swal2-loader {
+  border-color: #10b981 transparent #10b981 transparent !important;
+}

@@ -88,10 +88,15 @@ export async function sendAppointmentConfirmationEmail(
     const body = (await response.json()) as { id?: string; message?: string };
 
     if (!response.ok) {
+      const hint =
+        response.status === 403 &&
+        body.message?.includes('verify a domain')
+          ? ' Verifica imperialbarber.online en Resend (docs/RESEND-DOMAIN-SETUP.md).'
+          : '';
       return {
         provider: 'resend',
         sent: false,
-        error: body.message ?? `Resend respondió con status ${response.status}`,
+        error: (body.message ?? `Resend respondió con status ${response.status}`) + hint,
       };
     }
 

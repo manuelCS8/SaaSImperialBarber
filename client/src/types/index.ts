@@ -33,6 +33,14 @@ export type AppointmentStatus =
   | 'no_show'
   | 'completed';
 
+export interface EmailNotification {
+  provider: 'resend';
+  sent: boolean;
+  messageId?: string;
+  skippedReason?: string;
+  error?: string;
+}
+
 export interface Appointment {
   id: string;
   appointmentDate: string;
@@ -43,6 +51,7 @@ export interface Appointment {
   services: Array<{ id: string; priceApplied: string | number; service: Service }>;
   payment?: { amount: string | number; status: string } | null;
   commission?: { commissionAmount: string | number; commissionRate: string | number } | null;
+  emailNotification?: EmailNotification;
 }
 
 export interface Product {
