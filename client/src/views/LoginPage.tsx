@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Button, Card, Input } from '../components/ui';
+import Swal from 'sweetalert2';
 
 export function LoginPage() {
   const { login } = useAuth();
@@ -14,10 +15,39 @@ export function LoginPage() {
     setLoading(true);
     setError('');
 
+    // 1. Mostrar loading estético bloqueando la pantalla por la alta latencia
+    Swal.fire({
+      title: 'Autenticando...',
+      text: 'Validando credenciales en el servidor local.',
+      icon: 'info',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      showConfirmButton: false,
+      background: '#0f172a', // Fondo oscuro a juego con tu interfaz (Slate 900)
+      color: '#ffffff',
+      didOpen: () => {
+        Swal.showLoading(); // Activa el spinner de carga
+      }
+    });
+
     try {
       await login(email, password);
+
+      // 2. Si es exitoso, cerramos el modal justo antes del redireccionamiento
+      Swal.close();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo iniciar sesión');
+      const errorMsg = err instanceof Error ? err.message : 'No se pudo iniciar sesión';
+      setError(errorMsg);
+
+      // 3. Si falla por credenciales inválidas o falta de conexión, lanzar alerta roja
+      Swal.fire({
+        title: '¡Error de autenticación!',
+        text: 'El correo electrónico o la contraseña son incorrectos.',
+        icon: 'error',
+        confirmButtonColor: '#10b981', // Verde esmeralda que combina con tu interfaz
+        background: '#0f172a',
+        color: '#ffffff',
+      });
     } finally {
       setLoading(false);
     }
