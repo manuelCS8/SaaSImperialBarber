@@ -81,6 +81,18 @@ export async function login(email: string, password: string) {
   });
 }
 
+export async function registerClient(payload: {
+  name: string;
+  phone: string;
+  email: string;
+  password: string;
+}) {
+  return request<{ user: User; accessToken: string }>('/auth/register/client', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function getAppointments(token: string, status?: AppointmentStatus) {
   const query = status ? `?status=${status}` : '';
   return request<Appointment[]>(`/appointments${query}`, {}, token);

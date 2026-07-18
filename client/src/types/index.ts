@@ -3,6 +3,14 @@ export interface User {
   email: string;
   role: string;
   status: string;
+  clientProfile?: ClientProfile;
+}
+
+export interface ClientProfile {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string | null;
 }
 
 export interface Client {
@@ -74,4 +82,10 @@ export interface Commission {
   };
 }
 
-export type ViewId = 'dashboard' | 'appointments' | 'clients' | 'inventory' | 'commissions';
+export type ViewId =
+  | 'dashboard'
+  | 'appointments'
+  | 'clients'
+  | 'inventory'
+  | 'commissions'
+  | 'my-appointments';

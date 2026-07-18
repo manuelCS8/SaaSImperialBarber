@@ -1,4 +1,4 @@
-import { useAuth } from '../context/AuthContext';
+import { roleLabel, useAuth } from '../context/AuthContext';
 import { Button } from './ui';
 
 export function Topbar({ title, subtitle }: { title: string; subtitle?: string }) {
@@ -14,8 +14,10 @@ export function Topbar({ title, subtitle }: { title: string; subtitle?: string }
 
         <div className="flex items-center gap-3">
           <div className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-2 text-right">
-            <p className="text-sm font-medium text-white">{user?.email}</p>
-            <p className="text-xs capitalize text-emerald-400">{user?.role.replace('_', ' ')}</p>
+            <p className="text-sm font-medium text-white">
+              {user?.clientProfile?.name ?? user?.email}
+            </p>
+            <p className="text-xs text-emerald-400">{roleLabel(user?.role)}</p>
           </div>
           <Button variant="secondary" onClick={logout}>
             Salir

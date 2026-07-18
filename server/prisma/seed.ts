@@ -45,6 +45,21 @@ async function main() {
     },
   });
 
+  const clientUser = await prisma.user.upsert({
+    where: { email: 'cliente@imperialbarber.com' },
+    update: {},
+    create: {
+      email: 'cliente@imperialbarber.com',
+      passwordHash,
+      role: UserRole.client,
+    },
+  });
+
+  await prisma.client.update({
+    where: { id: client.id },
+    data: { userId: clientUser.id },
+  });
+
   const haircut = await prisma.service.upsert({
     where: { id: '00000000-0000-0000-0000-000000000101' },
     update: {},
@@ -96,7 +111,11 @@ async function main() {
     });
   }
 
-  console.log('Seed completado:', { admin: admin.email, barber: barberUser.email });
+  console.log('Seed completado:', {
+    admin: admin.email,
+    barber: barberUser.email,
+    clientUser: clientUser.email,
+  });
 }
 
 main()

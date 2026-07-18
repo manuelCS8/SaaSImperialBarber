@@ -1,25 +1,37 @@
 import type { ViewId } from '../types';
 
-const items: Array<{ id: ViewId; label: string; icon: string }> = [
-  { id: 'dashboard', label: 'Dashboard', icon: '◆' },
-  { id: 'appointments', label: 'Citas', icon: '✂' },
-  { id: 'clients', label: 'Clientes', icon: '◎' },
-  { id: 'inventory', label: 'Inventario', icon: '▣' },
-  { id: 'commissions', label: 'Comisiones', icon: '₿' },
+const allItems: Array<{ id: ViewId; label: string; icon: string; roles: string[] }> = [
+  { id: 'dashboard', label: 'Dashboard', icon: '◆', roles: ['admin_owner', 'barber'] },
+  { id: 'appointments', label: 'Citas', icon: '✂', roles: ['admin_owner', 'barber'] },
+  { id: 'clients', label: 'Clientes', icon: '◎', roles: ['admin_owner', 'barber'] },
+  { id: 'inventory', label: 'Inventario', icon: '▣', roles: ['admin_owner', 'barber'] },
+  { id: 'commissions', label: 'Comisiones', icon: '₿', roles: ['admin_owner', 'barber'] },
+  { id: 'my-appointments', label: 'Mis citas', icon: '✂', roles: ['client'] },
 ];
+
+export function getNavItems(role?: string) {
+  const resolvedRole = role ?? 'admin_owner';
+  return allItems.filter((item) => item.roles.includes(resolvedRole));
+}
 
 export function Sidebar({
   active,
   onChange,
+  role,
 }: {
   active: ViewId;
   onChange: (view: ViewId) => void;
+  role?: string;
 }) {
+  const items = getNavItems(role);
+
   return (
     <aside className="hidden w-64 shrink-0 border-r border-slate-800 bg-slate-900/60 p-5 lg:block">
       <div className="mb-8">
         <p className="text-xs uppercase tracking-[0.25em] text-emerald-400">Imperial Barber</p>
-        <h1 className="mt-1 text-xl font-bold text-white">SaaS Panel</h1>
+        <h1 className="mt-1 text-xl font-bold text-white">
+          {role === 'client' ? 'Portal Cliente' : 'SaaS Panel'}
+        </h1>
       </div>
 
       <nav className="space-y-1">
@@ -46,10 +58,14 @@ export function Sidebar({
 export function MobileNav({
   active,
   onChange,
+  role,
 }: {
   active: ViewId;
   onChange: (view: ViewId) => void;
+  role?: string;
 }) {
+  const items = getNavItems(role);
+
   return (
     <div className="flex gap-2 overflow-x-auto border-b border-slate-800 bg-slate-900/80 px-4 py-3 lg:hidden">
       {items.map((item) => (

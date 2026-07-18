@@ -9,8 +9,10 @@ import { CommissionsPage } from './views/CommissionsPage';
 import { DashboardPage } from './views/DashboardPage';
 import { InventoryPage } from './views/InventoryPage';
 import { LoginPage } from './views/LoginPage';
+import { MyAppointmentsPage } from './views/MyAppointmentsPage';
+import { RegisterPage } from './views/RegisterPage';
 
-const viewMeta: Record<ViewId, { title: string; subtitle: string }> = {
+const staffViewMeta: Record<Exclude<ViewId, 'my-appointments'>, { title: string; subtitle: string }> = {
   dashboard: {
     title: 'Dashboard',
     subtitle: 'Resumen operativo de la barbería',
@@ -34,10 +36,18 @@ const viewMeta: Record<ViewId, { title: string; subtitle: string }> = {
 };
 
 function AppShell() {
-  const [view, setView] = useState<ViewId>('dashboard');
-  const meta = viewMeta[view];
+  const { user, isClient } = useAuth();
+  const [view, setView] = useState<ViewId>(isClient ? 'my-appointments' : 'dashboard');
+
+  const meta = isClient
+    ? { title: 'Mis citas', subtitle: 'Portal de cliente Imperial Barber' }
+    : staffViewMeta[view as Exclude<ViewId, 'my-appointments'>];
 
   function renderView() {
+    if (isClient) {
+      return <MyAppointmentsPage />;
+    }
+
     switch (view) {
       case 'dashboard':
         return <DashboardPage />;
@@ -57,11 +67,11 @@ function AppShell() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <div className="flex min-h-screen">
-        <Sidebar active={view} onChange={setView} />
+        <Sidebar active={view} onChange={setView} role={user?.role} />
 
         <div className="flex min-h-screen flex-1 flex-col">
           <Topbar title={meta.title} subtitle={meta.subtitle} />
-          <MobileNav active={view} onChange={setView} />
+          <MobileNav active={view} onChange={setView} role={user?.role} />
           <main className="flex-1 px-6 py-6">{renderView()}</main>
         </div>
       </div>
@@ -69,9 +79,21 @@ function AppShell() {
   );
 }
 
+type AuthScreen = 'login' | 'register';
+
 function App() {
   const { token } = useAuth();
-  return token ? <AppShell /> : <LoginPage />;
+  const [authScreen, setAuthScreen] = useState<AuthScreen>('login');
+
+  if (token) {
+    return <AppShell />;
+  }
+
+  if (authScreen === 'register') {
+    return <RegisterPage onGoLogin={() => setAuthScreen('login')} />;
+  }
+
+  return <LoginPage onGoRegister={() => setAuthScreen('register')} />;
 }
 
 export default App;
