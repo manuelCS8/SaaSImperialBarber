@@ -56,8 +56,13 @@ async function request<T>(
 
   const contentType = response.headers.get('content-type') ?? '';
   if (!contentType.includes('application/json')) {
+    if (response.status === 404) {
+      throw new Error(
+        'El backend en Render no tiene esta función desplegada aún. Revisa en Render que el último deploy esté en Live.'
+      );
+    }
     throw new Error(
-      'El API está despertando en Render. Abre https://saas-imperial-barber-api.onrender.com/api/v1/health en otra pestaña, espera el JSON y reintenta el login.'
+      'El API está despertando en Render. Abre https://saas-imperial-barber-api.onrender.com/api/v1/health en otra pestaña, espera el JSON y reintenta.'
     );
   }
 

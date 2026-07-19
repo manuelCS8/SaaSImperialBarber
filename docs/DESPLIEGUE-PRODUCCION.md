@@ -52,8 +52,8 @@ El frontend en Vercel ya apunta al API via `client/.env.production`. Tras el dep
 | **Name** | `saas-imperial-barber-api` |
 | **Root Directory** | `server` |
 | **Runtime** | Node |
-| **Build Command** | `npm install && npx prisma generate && npm run build` |
-| **Start Command** | `npx prisma db push && node dist/index.js` |
+| **Build Command** | `bash scripts/render-build.sh` |
+| **Start Command** | `node dist/index.js` |
 | **Instance type** | Free |
 
 5. **Environment Variables** (pestaña Environment):
