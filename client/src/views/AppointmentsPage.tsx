@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Badge, Button, Card, EmptyState, Input, Select } from '../components/ui';
+import { AppointmentDateTimePicker } from '../components/AppointmentDateTimePicker';
 import { useAuth } from '../context/AuthContext';
 import {
   completeAppointment,
@@ -12,8 +13,6 @@ import {
 } from '../services/api';
 import type { Appointment, AppointmentStatus, Barber, Client, EmailNotification, Service } from '../types';
 import {
-  getMaxAppointmentDatetime,
-  getMinAppointmentDatetime,
   validateAppointmentDatetime,
 } from '../utils/datetime';
 import { formatDate, formatMoney, statusClass, statusLabel } from '../utils/format';
@@ -254,14 +253,9 @@ export function AppointmentsPage() {
             ))}
           </Select>
 
-          <Input
-            label="Fecha y hora"
-            type="datetime-local"
+          <AppointmentDateTimePicker
             value={form.appointmentDate}
-            min={getMinAppointmentDatetime()}
-            max={getMaxAppointmentDatetime()}
-            onChange={(e) => setForm((prev) => ({ ...prev, appointmentDate: e.target.value }))}
-            required
+            onChange={(appointmentDate) => setForm((prev) => ({ ...prev, appointmentDate }))}
           />
 
           <div className="md:col-span-2">

@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import { UserRole, UserStatus } from '@prisma/client';
 import { prisma } from '../lib/prisma';
+import { validatePhone } from '../utils/validation';
 
 export interface ClientProfile {
   id: string;
@@ -24,8 +25,8 @@ export async function registerClientAccount(input: {
   name: string;
   phone: string;
 }) {
-  const normalizedPhone = input.phone.trim();
   const normalizedEmail = input.email.trim().toLowerCase();
+  const phone = validatePhone(input.phone);
 
   const existingUser = await prisma.user.findUnique({ where: { email: normalizedEmail } });
   if (existingUser) {
@@ -33,7 +34,7 @@ export async function registerClientAccount(input: {
   }
 
   const existingClient = await prisma.client.findUnique({
-    where: { phone: normalizedPhone },
+    where: { phone },
   });
 
   if (existingClient?.userId) {
@@ -66,7 +67,7 @@ export async function registerClientAccount(input: {
           data: {
             userId: user.id,
             name: input.name.trim(),
-            phone: normalizedPhone,
+            phone,
             email: normalizedEmail,
           },
           select: { id: true, name: true, phone: true, email: true },

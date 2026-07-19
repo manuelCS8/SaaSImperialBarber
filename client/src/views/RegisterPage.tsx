@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Button, Card, Input } from '../components/ui';
+import { PhoneInput } from '../components/PhoneInput';
+import { validatePhone10 } from '../utils/phone';
 
 export function RegisterPage({ onGoLogin }: { onGoLogin: () => void }) {
   const { registerClient } = useAuth();
@@ -26,10 +28,16 @@ export function RegisterPage({ onGoLogin }: { onGoLogin: () => void }) {
       return;
     }
 
+    const phoneError = validatePhone10(phone);
+    if (phoneError) {
+      setError(phoneError);
+      return;
+    }
+
     setLoading(true);
 
     try {
-      await registerClient({ name, phone, email, password });
+      await registerClient({ name, phone: phone.replace(/\D/g, ''), email, password });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo crear la cuenta');
     } finally {
@@ -63,14 +71,7 @@ export function RegisterPage({ onGoLogin }: { onGoLogin: () => void }) {
                 onChange={(e) => setName(e.target.value)}
                 required
               />
-              <Input
-                label="Teléfono"
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="5551234567"
-                required
-              />
+              <PhoneInput value={phone} onChange={setPhone} required />
               <Input
                 label="Correo electrónico"
                 type="email"

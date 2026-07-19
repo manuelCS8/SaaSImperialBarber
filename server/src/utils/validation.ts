@@ -14,8 +14,8 @@ export function validateClientName(name: string): void {
 
 export function validatePhone(phone: string): string {
   const normalized = normalizePhone(phone);
-  if (normalized.length < 10 || normalized.length > 15) {
-    throw new Error('El teléfono debe tener entre 10 y 15 dígitos');
+  if (normalized.length !== 10) {
+    throw new Error('El teléfono debe tener exactamente 10 dígitos');
   }
   return normalized;
 }

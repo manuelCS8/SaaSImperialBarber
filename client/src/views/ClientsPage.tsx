@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Button, Card, EmptyState, Input } from '../components/ui';
+import { PhoneInput } from '../components/PhoneInput';
 import { useAuth } from '../context/AuthContext';
 import { createClient, getClients } from '../services/api';
 import type { Client } from '../types';
+import { validatePhone10 } from '../utils/phone';
 
 export function ClientsPage() {
   const { token } = useAuth();
@@ -33,14 +35,14 @@ export function ClientsPage() {
     event.preventDefault();
     if (!token) return;
 
-    const digits = form.phone.replace(/\D/g, '');
-    if (digits.length < 10) {
-      setError('El teléfono debe tener al menos 10 dígitos numéricos');
+    const phoneError = validatePhone10(form.phone);
+    if (phoneError) {
+      setError(phoneError);
       return;
     }
 
     try {
-      await createClient(token, { ...form, phone: digits });
+      await createClient(token, { ...form, phone: form.phone.replace(/\D/g, '') });
       setForm({ name: '', phone: '', email: '' });
       setSuccess('Cliente guardado correctamente');
       setError('');
@@ -61,14 +63,9 @@ export function ClientsPage() {
             onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
             required
           />
-          <Input
-            label="Teléfono"
-            type="tel"
-            inputMode="numeric"
-            pattern="[0-9]{10,15}"
+          <PhoneInput
             value={form.phone}
-            onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value.replace(/\D/g, '') }))}
-            placeholder="10 dígitos"
+            onChange={(phone) => setForm((prev) => ({ ...prev, phone }))}
             required
           />
           <Input

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Badge, Button, Card, EmptyState, Input, Select } from '../components/ui';
+import { AppointmentDateTimePicker } from '../components/AppointmentDateTimePicker';
 import { useAuth } from '../context/AuthContext';
 import {
   createAppointment,
@@ -8,11 +9,7 @@ import {
   getServices,
 } from '../services/api';
 import type { Appointment, Barber, Service } from '../types';
-import {
-  getMaxAppointmentDatetime,
-  getMinAppointmentDatetime,
-  validateAppointmentDatetime,
-} from '../utils/datetime';
+import { validateAppointmentDatetime } from '../utils/datetime';
 import { formatDate, formatMoney, statusClass, statusLabel } from '../utils/format';
 import { showErrorAlert, showSuccessAlert } from '../utils/swalTheme';
 
@@ -132,14 +129,9 @@ export function MyAppointmentsPage() {
             ))}
           </Select>
 
-          <Input
-            label="Fecha y hora"
-            type="datetime-local"
+          <AppointmentDateTimePicker
             value={form.appointmentDate}
-            min={getMinAppointmentDatetime()}
-            max={getMaxAppointmentDatetime()}
-            onChange={(e) => setForm((prev) => ({ ...prev, appointmentDate: e.target.value }))}
-            required
+            onChange={(appointmentDate) => setForm((prev) => ({ ...prev, appointmentDate }))}
           />
 
           <div className="md:col-span-2">
